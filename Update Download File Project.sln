@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update Download File Project", "Update Download File Project\Update Download File Project.csproj", "{90B97F6E-2F3E-4262-9E0D-46EF2BFB2515}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90B97F6E-2F3E-4262-9E0D-46EF2BFB2515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90B97F6E-2F3E-4262-9E0D-46EF2BFB2515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90B97F6E-2F3E-4262-9E0D-46EF2BFB2515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90B97F6E-2F3E-4262-9E0D-46EF2BFB2515}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C42E7599-51B4-4562-B86E-E9300FE5FCBA}
+	EndGlobalSection
+EndGlobal

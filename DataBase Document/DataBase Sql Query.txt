@@ -1,0 +1,29 @@
+# Main Table
+
+ create table UploadDownloadFile
+ (
+ FileID int primary key identity(1,1),
+ FileTypeID int default -1,
+ FileName varchar(255),
+ FileUrl varchar(512),
+ InsertionDate varchar(255) default CURRENT_TIMESTAMP,
+ IsActive bit default 1,
+ IsArchive bit default 0,
+  );
+
+#Master Table
+
+create table master_url (
+UrlID int primary key identity(1,1),
+FileType varchar(50),
+FileUrl varchar(512)
+);
+
+  insert into master_url(FileType, FileUrl) values ('raw','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652434262/File%20Images/raw_ypinsb.png');
+insert into master_url(FileType, FileUrl) values ('txt','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432417/File%20Images/txt_kpq7ql.png');
+insert into master_url(FileType, FileUrl) values ('img','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432242/File%20Images/img_kwzkws.jpg');
+insert into master_url(FileType, FileUrl) values ('pdf','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432241/File%20Images/pdf_fr3rhb.png');
+insert into master_url(FileType, FileUrl) values ('xls','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432241/File%20Images/excel_xylhvu.png');
+insert into master_url(FileType, FileUrl) values ('video','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432241/File%20Images/video_zzbwir.png');
+insert into master_url(FileType, FileUrl) values ('csv','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652432240/File%20Images/csv_ahcebd.webp');
+insert into master_url(FileType, FileUrl) values ('xlsx','https://res.cloudinary.com/dzavgoc9w/image/upload/v1652433241/File%20Images/xlsx_rremco.png');
