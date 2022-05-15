@@ -1,0 +1,41 @@
+
+Css Loader       : npm install css-loader --save-dev
+react-router-dom : npm install react-router-dom@5.2.0
+
+material ui : 
+full package : npm install material-ui@latest
+npm i @material-ui/core
+npm i @material-ui/icons
+npm i @material-ui/pickers
+
+npm i date-fns
+npm i @date-io/date-fns
+npm i axios
+
+install npm 
+npm i npm@6.0.1
+
+uninstall npm 
+npm uninstall npm -g
+
+scss installation on cmd -> Worked
+
+#Sass Error
+
+---------------------------------
+
+npm add node-sass
+npm rebuild node-sass
+
+---------------------------------
+
+npm remove node-sass
+npm start
+npm add node-sass
+
+---------------------------------
+
+npm uninstall -g node-sass
+npm install -g node-sass@4.14.1
+
+---------------------------------

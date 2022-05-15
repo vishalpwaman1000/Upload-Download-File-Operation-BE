@@ -4,6 +4,7 @@
  (
  FileID int primary key identity(1,1),
  FileTypeID int default -1,
+ ResourcePublicID varchar(512),
  FileName varchar(255),
  FileUrl varchar(512),
  InsertionDate varchar(255) default CURRENT_TIMESTAMP,

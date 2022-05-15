@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,7 +8,13 @@ namespace Update_Download_File_Project.Model
 {
     public class GetUploadedFileListRequest
     {
+        [Required]
+        public string OperationType { get; set; } // Read, Trash, Archive
+
+        [Required]
         public int NumberOfRecordPerPage { get; set; }
+
+        [Required]
         public int PageNumber { get; set; }
     }
 
@@ -30,5 +37,6 @@ namespace Update_Download_File_Project.Model
         public string FileUrl { get; set; }
         public string FileTypeUrl { get; set; }
         public string InsertionDate { get; set; }
+        public string FileStatus { get; set; }
     }
 }

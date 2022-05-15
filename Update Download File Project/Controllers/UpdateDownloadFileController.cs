@@ -94,70 +94,13 @@ namespace Update_Download_File_Project.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateAsArchiveFile(UpdateAsArchiveFileRequest request)
+        public async Task<IActionResult> UpdateAsArchiveTrashFile(UpdateAsArchiveTrashFileRequest request)
         {
-            UpdateAsArchiveFileResponse response = new UpdateAsArchiveFileResponse();
+            UpdateAsArchiveTrashFileResponse response = new UpdateAsArchiveTrashFileResponse();
             try
             {
 
-                response = await _updateDownloadFileRL.UpdateAsArchiveFile(request);
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-
-            return Ok(response);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> GetArchiveFileList(GetUploadedFileListRequest request)
-        {
-            GetUploadedFileListResponse response = new GetUploadedFileListResponse();
-            try
-            {
-
-                response = await _updateDownloadFileRL.GetArchiveFileList(request);
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-
-            return Ok(response);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UpdateAsTrashFile(UpdateAsTrashFileRequest request)
-        {
-            UpdateAsTrashFileResponse response = new UpdateAsTrashFileResponse();
-            try
-            {
-
-                response = await _updateDownloadFileRL.UpdateAsTrashFile(request);
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-
-            return Ok(response);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> GetTrashFileList(GetUploadedFileListRequest request)
-        {
-            GetUploadedFileListResponse response = new GetUploadedFileListResponse();
-            try
-            {
-
-                response = await _updateDownloadFileRL.GetTrashFileList(request);
+                response = await _updateDownloadFileRL.UpdateAsArchiveTrashFile(request);
 
             }
             catch (Exception ex)

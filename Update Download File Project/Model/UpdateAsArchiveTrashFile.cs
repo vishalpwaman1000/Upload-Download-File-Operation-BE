@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Update_Download_File_Project.Model
 {
-    public class UpdateAsTrashFileRequest
+    public class UpdateAsArchiveTrashFileRequest
     {
-        [Required]
+        public string OperationType { get; set; }
         public int FileID { get; set; }
-
-        //public string PublicID { get; set; }
+        
     }
 
-    public class UpdateAsTrashFileResponse
+    public class UpdateAsArchiveTrashFileResponse
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; }

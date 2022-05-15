@@ -144,8 +144,10 @@ namespace Update_Download_File_Project.DataAccessLayer
                 }
 
                 int Offset = (request.PageNumber - 1) * request.NumberOfRecordPerPage;
-
-                string SqlQuery = @"
+                string SqlQuery = string.Empty;
+                if (request.OperationType.ToLowerInvariant() == "active")
+                {
+                    SqlQuery = @"
                                     SELECT FileID,
                                            ResourcePublicID,
 	                                       FileName,
@@ -158,6 +160,48 @@ namespace Update_Download_File_Project.DataAccessLayer
                                     order by InsertionDate desc
                                     OFFSET @Offset ROWS FETCH NEXT @NumberOfRecordPerPage ROWS ONLY;
                                     ";
+
+                }else if (request.OperationType.ToLowerInvariant() == "trash")
+                {
+
+                    SqlQuery = @"
+                                    SELECT FileID,
+                                           ResourcePublicID,
+	                                       FileName,
+	                                       InsertionDate,
+	                                       FileUrl,
+	                                       (select FileUrl from dbo.master_url where UrlID=FileTypeID) as FileTypeUrl,
+                                           (select COUNT(*) from UploadDownloadFile WHERE IsActive=0) As TotalRecord
+                                    FROM UploadDownloadFile 
+                                    WHERE IsActive=0
+                                    order by InsertionDate desc
+                                    OFFSET @Offset ROWS FETCH NEXT @NumberOfRecordPerPage ROWS ONLY;
+                                    ";
+
+                }
+                else if (request.OperationType.ToLowerInvariant() == "archive")
+                {
+                    SqlQuery = @"
+                                    SELECT FileID,	
+                                           ResourcePublicID,
+	                                       FileName,
+	                                       InsertionDate,
+	                                       FileUrl,
+	                                       (select FileUrl from dbo.master_url where UrlID=FileTypeID) as FileTypeUrl,
+                                           (select COUNT(*) from UploadDownloadFile WHERE IsActive=1 AND IsArchive=1) As TotalRecord
+                                    FROM UploadDownloadFile 
+                                    WHERE IsActive=1 AND IsArchive=1
+                                    order by InsertionDate desc
+                                    OFFSET @Offset ROWS FETCH NEXT @NumberOfRecordPerPage ROWS ONLY;
+                                    ";
+
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Invalid Operation Type";
+                    return response;
+                }
 
                 using (SqlCommand sqlCommand = new SqlCommand(SqlQuery, _sqlConnection))
                 {
@@ -182,7 +226,8 @@ namespace Update_Download_File_Project.DataAccessLayer
                                     FileName = dataReader["FileName"] != DBNull.Value ? dataReader["FileName"].ToString() : string.Empty,
                                     FileUrl = dataReader["FileUrl"] != DBNull.Value ? dataReader["FileUrl"].ToString() : string.Empty,
                                     FileTypeUrl = dataReader["FileTypeUrl"] != DBNull.Value ? dataReader["FileTypeUrl"].ToString() : string.Empty,
-                                    InsertionDate = dataReader["InsertionDate"] != DBNull.Value ? dataReader["InsertionDate"].ToString() : string.Empty,
+                                    InsertionDate = dataReader["InsertionDate"] != DBNull.Value ? Convert.ToDateTime(dataReader["InsertionDate"]).ToString("dddd, dd MMMM yyyy h:mm tt") : string.Empty,
+                                    FileStatus = request.OperationType
                                 });
 
                                 if (Count == 0)
@@ -193,6 +238,8 @@ namespace Update_Download_File_Project.DataAccessLayer
                                     response.CurrentPage = request.PageNumber;
                                 }
                             }
+
+                            
                         }
                     }
                 }
@@ -216,12 +263,12 @@ namespace Update_Download_File_Project.DataAccessLayer
         {
             UploadFileOnCloudResponse response = new UploadFileOnCloudResponse();
             response.IsSuccess = true;
-            response.Message = "Successful";
+            response.Message = "Successfully File Upload";
 
             string ImageExtensionList = ".webp, .svg, .png, .pjpeg, .jfif, .jpeg, .jpg, .gif, .avif, .apng";
             string VideoExtensionList = ".mp4, .mov, .wmv, .avi, .avchd, .flv, .f4v, .swf, .mkv, .webm , .html5, .mpeg-2, mpeg-4, .mts, .h264";
             string ProjectUsableExtensionList = ".txt, .pdf, .xls, .csv, .xlsx";
-            string FileExtension = string.Empty;
+            string FileExtension = string.Empty, Url=string.Empty, PublicID=string.Empty;
             try
             {
 
@@ -237,37 +284,56 @@ namespace Update_Download_File_Project.DataAccessLayer
                 Cloudinary cloudinary = new Cloudinary(account);
 
 
-                var uploadParams = new RawUploadParams()
-                {
-                    File = new FileDescription(request.File.FileName, path),
-                    //Folder=""
-                };
-                var uploadResult = await cloudinary.UploadAsync(uploadParams);
-
-                //
-
                 FileExtension = "." + FileName[1].ToString();
 
                 if (ImageExtensionList.Contains(FileExtension))
                 {
                     FileExtension = "img";
+                    var uploadParams = new ImageUploadParams()
+                    {
+                        File = new FileDescription(request.File.FileName, path),
+                        //Folder=""
+                    };
+                    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                    Url = uploadResult.Url.ToString();
+                    PublicID = uploadResult.PublicId.ToString();
                 }
                 else if (VideoExtensionList.Contains(FileExtension))
                 {
                     FileExtension = "video";
+                    var uploadParams = new VideoUploadParams()
+                    {
+                        File = new FileDescription(request.File.FileName, path),
+                        //Folder=""
+                    };
+                    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                    Url = uploadResult.Url.ToString();
+                    PublicID = uploadResult.PublicId.ToString();
                 }
                 else if (!ProjectUsableExtensionList.Contains(FileExtension))
                 {
                     FileExtension = "raw";
+                    var uploadParams = new RawUploadParams()
+                    {
+                        File = new FileDescription(request.File.FileName, path),
+                        //Folder=""
+                    };
+                    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                    Url = uploadResult.Url.ToString();
+                    PublicID = uploadResult.PublicId.ToString();
                 }
                 else
                 {
                     FileExtension = FileName[1].ToString();
+                    var uploadParams = new RawUploadParams()
+                    {
+                        File = new FileDescription(request.File.FileName, path),
+                        //Folder=""
+                    };
+                    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                    Url = uploadResult.Url.ToString();
+                    PublicID = uploadResult.PublicId.ToString();
                 }
-
-
-                //
-
 
                 if (_sqlConnection.State != ConnectionState.Open)
                 {
@@ -298,8 +364,8 @@ namespace Update_Download_File_Project.DataAccessLayer
                     //@FileName, @FileUrl
                     sqlCommand.Parameters.AddWithValue("@FileName", request.File.FileName);
                     sqlCommand.Parameters.AddWithValue("@FileType", FileExtension);
-                    sqlCommand.Parameters.AddWithValue("@FileUrl", uploadResult.Url.ToString());
-                    sqlCommand.Parameters.AddWithValue("@ResourcePublicID", uploadResult.PublicId.ToString());
+                    sqlCommand.Parameters.AddWithValue("@FileUrl", Url);
+                    sqlCommand.Parameters.AddWithValue("@ResourcePublicID", PublicID);
                     int Status = await sqlCommand.ExecuteNonQueryAsync();
                     if (Status <= 0)
                     {
@@ -323,11 +389,12 @@ namespace Update_Download_File_Project.DataAccessLayer
             return response;
         }
 
-        public async Task<UpdateAsArchiveFileResponse> UpdateAsArchiveFile(UpdateAsArchiveFileRequest request)
+        public async Task<UpdateAsArchiveTrashFileResponse> UpdateAsArchiveTrashFile(UpdateAsArchiveTrashFileRequest request)
         {
-            UpdateAsArchiveFileResponse response = new UpdateAsArchiveFileResponse();
+            UpdateAsArchiveTrashFileResponse response = new UpdateAsArchiveTrashFileResponse();
             response.IsSuccess = true;
             response.Message = "Successful";
+            string SqlQuery = string.Empty;
 
             try
             {
@@ -337,145 +404,21 @@ namespace Update_Download_File_Project.DataAccessLayer
                     await _sqlConnection.OpenAsync();
                 }
 
-                string SqlQuery = @"
+                if (request.OperationType.ToLowerInvariant().Equals("archive"))
+                {
+                     SqlQuery = @"
                                     UPDATE UploadDownloadFile
                                     SET IsArchive=1
                                     WHERE FileID=@FileID;
                                     ";
-
-                using (SqlCommand sqlCommand = new SqlCommand(SqlQuery, _sqlConnection))
+                }else if (request.OperationType.ToLowerInvariant().Equals("trash"))
                 {
-
-                    sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandTimeout = 180;
-                    sqlCommand.Parameters.AddWithValue("@FileID", request.FileID);
-                    int Status = await sqlCommand.ExecuteNonQueryAsync();
-                    if (Status <= 0)
-                    {
-                        response.IsSuccess = false;
-                        response.Message = "Something Went Wrong";
-                    }
-
-                }
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
-                await _sqlConnection.DisposeAsync();
-            }
-
-            return response;
-        }
-
-        public async Task<GetUploadedFileListResponse> GetArchiveFileList(GetUploadedFileListRequest request)
-        {
-            GetUploadedFileListResponse response = new GetUploadedFileListResponse();
-            response.IsSuccess = true;
-            response.Message = "Successful";
-
-            try
-            {
-
-                if (_sqlConnection.State != ConnectionState.Open)
-                {
-                    await _sqlConnection.OpenAsync();
-                }
-
-                int Offset = (request.PageNumber - 1) * request.NumberOfRecordPerPage;
-
-                //string SqlQuery = _configuration["GetFileData"];
-
-                string SqlQuery = @"
-                                    SELECT FileID,	
-	                                       FileName,
-	                                       InsertionDate,
-	                                       FileUrl,
-	                                       (select FileUrl from dbo.master_url where UrlID=FileTypeID) as FileTypeUrl,
-                                           (select COUNT(*) from UploadDownloadFile WHERE IsActive=1 AND IsArchive=1) As TotalRecord
-                                    FROM UploadDownloadFile 
-                                    WHERE IsActive=1 AND IsArchive=1
-                                    order by InsertionDate desc
-                                    OFFSET @Offset ROWS FETCH NEXT @NumberOfRecordPerPage ROWS ONLY;
-                                    ";
-
-                using (SqlCommand sqlCommand = new SqlCommand(SqlQuery, _sqlConnection))
-                {
-                    sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandTimeout = 180;
-                    sqlCommand.Parameters.AddWithValue("@NumberOfRecordPerPage", request.NumberOfRecordPerPage);
-                    sqlCommand.Parameters.AddWithValue("@Offset", Offset);
-
-                    using (DbDataReader dataReader = await sqlCommand.ExecuteReaderAsync())
-                    {
-                        if (dataReader.HasRows)
-                        {
-                            response.data = new List<GetUploadedFileList>();
-
-                            int Count = 0;
-
-                            while (await dataReader.ReadAsync())
-                            {
-                                response.data.Add(new GetUploadedFileList()
-                                {
-                                    FileID = dataReader["FileID"] != DBNull.Value ? Convert.ToInt32(dataReader["FileID"]) : -1,
-                                    FileName = dataReader["FileName"] != DBNull.Value ? dataReader["FileName"].ToString() : string.Empty,
-                                    FileUrl = dataReader["FileUrl"] != DBNull.Value ? dataReader["FileUrl"].ToString() : string.Empty,
-                                    FileTypeUrl = dataReader["FileTypeUrl"] != DBNull.Value ? dataReader["FileTypeUrl"].ToString() : string.Empty,
-                                    InsertionDate = dataReader["InsertionDate"] != DBNull.Value ? dataReader["InsertionDate"].ToString() : string.Empty,
-                                });
-
-                                if (Count == 0)
-                                {
-                                    Count++;
-                                    response.TotalRecords = dataReader["TotalRecord"] != DBNull.Value ? Convert.ToInt32(dataReader["TotalRecord"]) : -1;
-                                    response.TotalPage = Convert.ToInt32(Math.Ceiling(Convert.ToDecimal(response.TotalRecords / request.NumberOfRecordPerPage)));
-                                    response.CurrentPage = request.PageNumber;
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
-                await _sqlConnection.DisposeAsync();
-            }
-
-            return response;
-        }
-
-        public async Task<UpdateAsTrashFileResponse> UpdateAsTrashFile(UpdateAsTrashFileRequest request)
-        {
-            UpdateAsTrashFileResponse response = new UpdateAsTrashFileResponse();
-            response.IsSuccess = true;
-            response.Message = "Successful";
-
-            try
-            {
-
-                if (_sqlConnection.State != ConnectionState.Open)
-                {
-                    await _sqlConnection.OpenAsync();
-                }
-
-                string SqlQuery = @"
+                     SqlQuery = @"
                                     UPDATE UploadDownloadFile
                                     SET IsActive=0
                                     WHERE FileID=@FileID;
                                     ";
+                }
 
                 using (SqlCommand sqlCommand = new SqlCommand(SqlQuery, _sqlConnection))
                 {
@@ -490,89 +433,6 @@ namespace Update_Download_File_Project.DataAccessLayer
                         response.Message = "Something Went Wrong";
                     }
 
-                }
-
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = "Exception Occurs : " + ex.Message;
-            }
-            finally
-            {
-                await _sqlConnection.CloseAsync();
-                await _sqlConnection.DisposeAsync();
-            }
-
-            return response;
-        }
-
-        public async Task<GetUploadedFileListResponse> GetTrashFileList(GetUploadedFileListRequest request)
-        {
-            GetUploadedFileListResponse response = new GetUploadedFileListResponse();
-            response.IsSuccess = true;
-            response.Message = "Successful";
-
-            try
-            {
-
-                if (_sqlConnection.State != ConnectionState.Open)
-                {
-                    await _sqlConnection.OpenAsync();
-                }
-
-                int Offset = (request.PageNumber - 1) * request.NumberOfRecordPerPage;
-
-                //string SqlQuery = _configuration["GetFileData"];
-
-                string SqlQuery = @"
-                                    SELECT FileID,	
-	                                       FileName,
-	                                       InsertionDate,
-	                                       FileUrl,
-	                                       (select FileUrl from dbo.master_url where UrlID=FileTypeID) as FileTypeUrl,
-                                           (select COUNT(*) from UploadDownloadFile WHERE IsActive=0) As TotalRecord
-                                    FROM UploadDownloadFile 
-                                    WHERE IsActive=0
-                                    order by InsertionDate desc
-                                    OFFSET @Offset ROWS FETCH NEXT @NumberOfRecordPerPage ROWS ONLY;
-                                    ";
-
-                using (SqlCommand sqlCommand = new SqlCommand(SqlQuery, _sqlConnection))
-                {
-                    sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandTimeout = 180;
-                    sqlCommand.Parameters.AddWithValue("@NumberOfRecordPerPage", request.NumberOfRecordPerPage);
-                    sqlCommand.Parameters.AddWithValue("@Offset", Offset);
-
-                    using (DbDataReader dataReader = await sqlCommand.ExecuteReaderAsync())
-                    {
-                        if (dataReader.HasRows)
-                        {
-                            response.data = new List<GetUploadedFileList>();
-                            int Count = 0;
-
-                            while (await dataReader.ReadAsync())
-                            {
-                                response.data.Add(new GetUploadedFileList()
-                                {
-                                    FileID = dataReader["FileID"] != DBNull.Value ? Convert.ToInt32(dataReader["FileID"]) : -1,
-                                    FileName = dataReader["FileName"] != DBNull.Value ? dataReader["FileName"].ToString() : string.Empty,
-                                    FileUrl = dataReader["FileUrl"] != DBNull.Value ? dataReader["FileUrl"].ToString() : string.Empty,
-                                    FileTypeUrl = dataReader["FileTypeUrl"] != DBNull.Value ? dataReader["FileTypeUrl"].ToString() : string.Empty,
-                                    InsertionDate = dataReader["InsertionDate"] != DBNull.Value ? dataReader["InsertionDate"].ToString() : string.Empty,
-                                });
-
-                                if (Count == 0)
-                                {
-                                    Count++;
-                                    response.TotalRecords = dataReader["TotalRecord"] != DBNull.Value ? Convert.ToInt32(dataReader["TotalRecord"]) : -1;
-                                    response.TotalPage = Convert.ToInt32(Math.Ceiling(Convert.ToDecimal(response.TotalRecords / request.NumberOfRecordPerPage)));
-                                    response.CurrentPage = request.PageNumber;
-                                }
-                            }
-                        }
-                    }
                 }
 
             }
@@ -594,7 +454,12 @@ namespace Update_Download_File_Project.DataAccessLayer
         {
             DeleteFileResponse response = new DeleteFileResponse();
             response.IsSuccess = true;
-            response.Message = "Successful";
+            response.Message = "Delete File Successful";
+
+            string ImageExtensionList = ".webp, .svg, .png, .pjpeg, .jfif, .jpeg, .jpg, .gif, .avif, .apng";
+            string VideoExtensionList = ".mp4, .mov, .wmv, .avi, .avchd, .flv, .f4v, .swf, .mkv, .webm , .html5, .mpeg-2, mpeg-4, .mts, .h264";
+            string ProjectUsableExtensionList = ".txt, .pdf, .xls, .csv, .xlsx";
+            string FileExtension = string.Empty, Result = string.Empty;
 
             try
             {
@@ -606,14 +471,53 @@ namespace Update_Download_File_Project.DataAccessLayer
                 
                 Cloudinary cloudinary = new Cloudinary(account);
 
-                var deletionParams = new DeletionParams(request.PublicID)
+                string[] FileName = request.FileName.Split(".");
+                FileExtension = "." + FileName[1].ToString();
+
+                if (ImageExtensionList.Contains(FileExtension))
                 {
-                    ResourceType = ResourceType.Raw
-                };
+                    var deletionParams = new DeletionParams(request.PublicID)
+                    {
+                        ResourceType = ResourceType.Image
+                    };
 
-                var deletionResult = cloudinary.Destroy(deletionParams);
+                    var deletionResult = cloudinary.Destroy(deletionParams);
+                    Result = deletionResult.Result.ToString();
+                }
+                else if (VideoExtensionList.Contains(FileExtension))
+                {
+                    var deletionParams = new DeletionParams(request.PublicID)
+                    {
+                        ResourceType = ResourceType.Video
+                    };
 
-                if (deletionResult.Result.ToLower() != "ok")
+                    var deletionResult = cloudinary.Destroy(deletionParams);
+                    Result = deletionResult.Result.ToString();
+                }
+                else if (!ProjectUsableExtensionList.Contains(FileExtension))
+                {
+                    var deletionParams = new DeletionParams(request.PublicID)
+                    {
+                        ResourceType = ResourceType.Raw
+                    };
+
+                    var deletionResult = cloudinary.Destroy(deletionParams);
+                    Result = deletionResult.Result.ToString();
+                }
+                else
+                {
+                    var deletionParams = new DeletionParams(request.PublicID)
+                    {
+                        ResourceType = ResourceType.Raw
+                    };
+
+                    var deletionResult = cloudinary.Destroy(deletionParams);
+                    Result = deletionResult.Result.ToString();
+                }
+
+                
+
+                if (Result.ToLower() != "ok")
                 {
                     response.IsSuccess = false;
                     response.Message = "Something Went To Wrong In Cloudinary Destroy Method";

@@ -12,6 +12,9 @@ namespace Update_Download_File_Project.Model
         public int FileID { get; set; }
 
         [Required]
+        public string FileName { get; set; }
+
+        [Required]
         public string PublicID { get; set; }
     }
 

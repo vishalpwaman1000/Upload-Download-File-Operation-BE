@@ -1,0 +1,10 @@
+{
+  "isSuccess": true,
+  "message": "SuccessFul",
+  "data": {
+    "userID": "4",
+    "userName": "vishal@gmail.com",
+    "role": "admin"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWQiOiI0IiwiZW1haWwiOiJ2aXNoYWxAZ21haWwuY29tIiwiUm9sZXMiOiJhZG1pbiIsIkRhdGUiOiIzLzEzLzIwMjIgMTI6MDk6MTYgUE0iLCJqdGkiOiJhMmJmNTZjNi1iOGNhLTQ5ZWYtYTVhOC0zZjdkMzJjN2NiMTkiLCJleHAiOjE2NDcxNjA3NTYsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjQ0MzI0LyIsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0OjQ0MzI0LyJ9.2FoBfnuKAd-TYQf3C9HhC1qNViCEzGNFZXCcclG5VYs"
+}
